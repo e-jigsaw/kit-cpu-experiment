@@ -1,4 +1,6 @@
 kit-cpu-experiment
 ==================
 
-cpu experiment of kit infomation facluty 
+CPU experiment of KIT Infomation facluty 
+
+Build CPU for education simulator by C language
