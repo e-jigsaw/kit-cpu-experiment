@@ -4,6 +4,7 @@
 #include <string.h>
 #include <getopt.h>
 #include <stdlib.h>
+#include <kue-chip2.h>
 
 #define free_mem \
     free(initial_filepath);\
@@ -18,7 +19,7 @@
 
 void showDesc(char *apppath);
 int main(int argc,char *argv[]){
-    int invalid=0,loopid=0,per_inst=0;
+    int invalid=0,loopid=0,per_inst=0,has_err=0;
     size_t step=0;
     char *initial_filepath,*program_filepath,*data_filepath,*out_to;
     initial_filepath=program_filepath=data_filepath=NULL;
@@ -65,11 +66,6 @@ int main(int argc,char *argv[]){
     }
     
     if(invalid) showDesc(argv[0]);
-    if(program_filepath==NULL){
-        fputs("You have to specify program filepath.\n",stderr);
-        free_mem;
-        return EXIT_FAILURE;
-    }
     
     /*Read files*/
     io_data d;
@@ -81,16 +77,14 @@ int main(int argc,char *argv[]){
     puts("File read successfully.");
     
     /*Transform*/
-    if(per_inst){
-        
-    }else{
-        
-    }
+    if(per_inst) has_err=interactive(&d,step,out_to);
+    else has_err=non_interactive(&d,step,out_to);
     
     /*Clean data*/
     free_data;
     free_mem;
-    return 0;
+    
+    return (has_err)?EXIT_FAILURE:EXIT_SUCCESS;
 }
 void showDesc(char *apppath){
     char *title="KUE-Chip2 Simulator";
@@ -104,5 +98,5 @@ void showDesc(char *apppath){
     puts("\t--step (-s)\t:Sets step-limitation");
     puts("\t--output (-o)\t:Sets an output file.");
     puts("\t--input (-i)\t:Sets a machine language file.");
-    puts("\t--per-inst (-p)\t:Interactive Mode. Runs instructions per one instruction.");
+    puts("\t--per-inst (-p)\t:Interactive Mode.");
 }
