@@ -7,37 +7,45 @@
 #include <kue-chip2.h>
 
 #define free_mem \
-    free(initial_filepath);\
-    free(program_filepath);\
-    free(data_filepath);\
-    free(out_to)
+    if(initial_filepath!=NULL) free(initial_filepath);\
+    if(program_filepath!=NULL)free(program_filepath);\
+    if(data_filepath!=NULL) free(data_filepath);\
+    if(out_to!=NULL) free(out_to)
 
 #define free_data \
-    free(d.program); \
-    free(d.data_area); \
-    free(d.initial_state); 
+    if(d.program!=NULL) free(d.program); \
+    if(d.data_area!=NULL) free(d.data_area); \
+    if(d.initial_state!=NULL) free(d.initial_state)
 
 void showDesc(char *apppath);
 int main(int argc,char *argv[]){
-    int invalid=0,loopid=0,per_inst=0,has_err=0;
+    int per_inst=0,has_err=0;
     size_t step=0;
     char *initial_filepath,*program_filepath,*data_filepath,*out_to;
-    initial_filepath=program_filepath=data_filepath=NULL;
+    initial_filepath=program_filepath=data_filepath=out_to=NULL;
     
     struct option long_options[]={
-        {"initial-state",required_argument,NULL,'z'},
-        {"data-area",required_argument,NULL,'d'},
-        {"step",required_argument,NULL,'s'},
-        {"output",required_argument,NULL,'o'},
-        {"input",required_argument,NULL,'i'},
-        {"per-inst",no_argument,NULL,'p'},
-        {0,0,0,0}
+    {"initial-state",required_argument,NULL,'z'},
+    {"data-area",required_argument,NULL,'d'},
+    {"step",required_argument,NULL,'s'},
+    {"output",required_argument,NULL,'o'},
+    {"input",required_argument,NULL,'i'},
+    {"per-inst",no_argument,NULL,'p'},
+    {"help",no_argument,NULL,'h'},
+    {0,0,0,0}
     };
     
-    while((loopid=1)||1){
-        int c=getopt_long(argc,argv,"z:d:s:o:i:p",long_options,NULL);
-        if(c<0&&loopid==0){invalid=1;break;}
-        else if(c<0&&loopid>0) break;
+    while(1){
+        int c=getopt_long(argc,argv,"z:d:s:o:i:ph",long_options,NULL);
+        if(c<0&&argv[1]==NULL){
+            per_inst=1;
+            break; 
+        }else if(c<0&&argv[1]!=NULL){
+            per_inst=1;
+            program_filepath=malloc(strlen(argv[1]));
+            strcpy(program_filepath,argv[1]);
+            break;
+        }
         
         switch(c){
             case 'z':
@@ -58,23 +66,25 @@ int main(int argc,char *argv[]){
             case 'p':
                 per_inst=1;
                 break;
+            case 'h':
+                showDesc(argv[0]);
+                return EXIT_FAILURE;
             case 'i':
-            default:
                 program_filepath=malloc(strlen(optarg));
+                strcpy(program_filepath,optarg);
                 break;
+            default:
+                showDesc(argv[0]);
+                return EXIT_FAILURE;
         }
     }
     
-    if(invalid) showDesc(argv[0]);
-    
     /*Read files*/
-    io_data d;
+    io_data d={NULL,NULL,NULL};
     
     read_initial_state(initial_filepath,&d);
     read_program_data(program_filepath,&d);
     read_data_area(data_filepath,&d);
-    
-    puts("File read successfully.");
     
     /*Transform*/
     if(per_inst) has_err=interactive(&d,step,out_to);
