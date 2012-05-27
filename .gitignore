@@ -7,4 +7,5 @@ build
 doc/gen
 doc/*.aux
 doc/*.dvi
+*.pdf
 
