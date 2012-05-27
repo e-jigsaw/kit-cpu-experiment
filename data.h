@@ -13,13 +13,13 @@ struct buf{
 }typedef buf;
 
 struct data{
-    unsigned short obj_code;
+    unsigned char obj_code[2];
     unsigned char *mnemonic_code;
     unsigned char pc,acc,ix;
     unsigned char flags;
-    buf in,out;
-    unsigned char program_memory[256];
-    unsigned char data_memory[256];
+    buf *in,out;
+    unsigned char *program_memory;
+    unsigned char *data_memory;
     //the value is tri-state. look at changed_flag.
     int memory_changed;
     unsigned char modified_addr;

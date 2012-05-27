@@ -1,0 +1,140 @@
+\documentclass[a4paper]{article}
+\author{Hiroaki Yamamoto}
+\title{Creating a simulator for KUE-chip2}
+
+\begin{document}
+    \maketitle
+    \section{Requirements}
+        \begin{itemize}
+            \item Basically, this simulator works as an interpretor for a specified machine language file.
+            \item The simulator needs machine language file to input program area.
+            \item A user can input data into data area by choosing a file.\\
+                  In addtion to this, the user can input initial state for registers/flags.
+            \item To avoid infinite loop, the user can specify step-limitation.
+            \item The result must be stored into the specified file name as comma separated values.
+            \item Those above options are provided via command line options. The details are section \ref{Options}.
+        \end{itemize}
+    \section{Options\label{Options}}
+        \begin{table}[htb]
+            \begin{center}
+                \caption{Command line options}
+                \begin{tabular}{|l|l|l|c|l|p{3cm}|}
+                    \hline Option&Alias&Argument&Attribute&Default value&Description\\
+                    \hline \verb@--initial-state@&-ii&File Name&Optional&&Sets an initial registers/flags state\\
+                    \hline \verb@--data-area@&-d&File Name&Optional&&Sets data into data area.\\
+                    \hline \verb@--step@&-s&Number&Optional&&Sets step-limitation\\
+                    \hline \verb@--output@&-o&Number&Optional&result.csv&Sets an output file.\\
+                    \hline \verb@--input@&-i&File Name&Needed&&Sets a machine language file.\\
+                    \hline \verb@--per-inst@&-p&none&Optional&&Interactive Mode.\\
+                    \hline
+                \end{tabular}
+            \end{center}
+        \end{table}
+        Note that \verb@--input@ option is Default Option. i.e. If you execute the simulator with the following, the command line argument is interpreted as \verb@--input@:
+        \begin{verbatim}
+./simulator program.bin
+        \end{verbatim}
+        \clearpage
+    \section{Data formats}
+        \subsection{Program data (Machine language file)}
+        The program data is stored as it is. Note that the data is {\bf BINARY data hand-assembled}.
+        
+        \subsection{Data area file}
+        The data area file is stored as it is. Uninitialized data is interperted as 0xff. The file size is smaller than 256 bytes, each extra area is set to 0xff.
+        
+        \subsection{Initial Sates for Registers/flags}
+        The data format is the following:
+        
+        \begin{table}[htb]
+                \begin{center}
+                    \caption{Data structure of Initial States for Refisters/flags \label{structure}}
+                    \begin{tabular}{|c|c|c|c|c|c|c|c|}
+                        \hline0-7&8-15&16-24&25&26&27&28&29-32\\
+                        \hline ACC&IX&OBUF&CF&VF&NF&ZF&0\\
+                        \hline
+                    \end{tabular}
+                \end{center}
+        \end{table}
+        
+        The unit of Table.\ref{structure} is bit.
+        
+        \subsection{Output file}
+        Output file is stored into a file as Comma Separeted Values with the following schema:
+        \begin{verbatim}
+        CPUID;Object code;Mnemonic code;PC;ACC;IX;CF;VF;NF;ZF;IN;OUT;MEMORY
+        \end{verbatim}
+
+    \section{Data Structure}
+        The data structure passing each function is the following.
+        \begin{verbatim}
+        enum changed_flag{NO_MODIFIED,PROGRAM_AREA,DATA_AREA};
+        struct buf{
+            unsigned char bits;
+            int flag;
+        } typedef buf;
+        
+        struct data{
+            unsigned short cpuid;
+            unsigned short obj_code;
+            unsigned char *mnemonic_code;
+            unsigned char pc,acc,ix;
+            unsigned char flags=0x0X;
+            buf in,out;
+            unsigned char program_memory[256];
+            unsigned char data_memory[256];
+            //the value is tri-state. look at changed_flag.
+            int memory_changed;
+            unsigned char modified_addr;
+            unsigned char prev;
+            unsigned char now;
+        } typedef data;
+        \end{verbatim}
+
+        Note that \verb@mnemonic_code@ must be allocated dinamically. Moreover, the data will be passed as a pointer to reduce memory usage. "flags" variable has values below 4 bits, and the structure is the following:
+        
+        \begin{table}[htb]
+            \begin{tabular}{|c|c|c|c|}
+            \hline 3&&&0\\
+            \hline CF&VF&NF&ZF\\
+            \hline
+            \end{tabular}
+        \end{table}
+
+    \section{Output}
+        The format to output to stdout is the following:
+        \begin{verbatim}
+{Object Code} {Mnemonic code} [CPU:{CPU} PC:{PC} ACC:{ACC} IX{IX}\
+ CF={CF} VF={VF} ZF={ZF} NF={NF} IN={IN} OUT={OUT} MEMORY={memory diff}]
+        \end{verbatim}
+
+        {string} is a variable corresponding to a register/flags.
+
+        Note that memory diff mus be a diff of memory. For example, if the address 0x10 before modified was 0xff and changed to 0x00, the {memory\_diff} syntax is the following:
+
+        \begin{verbatim}
+{address}:{the value before modified}->{the value after modified}
+        \end{verbatim}
+        
+        The meanings of other variables are the following:
+        
+        \begin{table}[htb]
+            \begin{center}
+                \caption{The meaning of each variable}
+                \begin{tabular}{|l|c|}
+                    \hline \{PC\}&Program Counter\\
+                    \hline \{ACC\}&Accumulator\\
+                    \hline \{IX\}&Index Register\\
+                    \hline \{CF\}&Carry Flag\\
+                    \hline \{VF\}&Overflow Flag\\
+                    \hline \{ZF\}&Zero Flag\\
+                    \hline \{NF\}&Negative Flag\\
+                    \hline \{IN\}&IBUF\\
+                    \hline \{OUT\}&OBUF\\
+                    \hline \{CPU\}&CPUID\\
+                    \hline
+                \end{tabular}
+            \end{center}
+        \end{table}
+        
+        Note that those above variables are hexadecimal, not string.
+\end{document}

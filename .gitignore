@@ -2,3 +2,9 @@ build
 *.pro
 *.pro.user
 *.pro.user.*
+*.log
+
+doc/gen
+doc/*.aux
+doc/*.dvi
+

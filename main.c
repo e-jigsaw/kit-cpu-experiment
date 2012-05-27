@@ -103,7 +103,7 @@ void showDesc(char *apppath){
     puts("");
     printf("Usage: %s [option] [--input|-i] [program file] \n",apppath);
     puts("\tOptions:");
-    puts("\t--initial-state (-i) <filename>:Sets an initial registers/flags state.");
+    puts("\t--initial-state (-z) <filename>:Sets an initial registers/flags state.");
     puts("\t--data-area (-d) <filename>\t:Sets data into data area.");
     puts("\t--step (-s)\t:Sets step-limitation");
     puts("\t--output (-o)\t:Sets an output file.");
