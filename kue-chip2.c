@@ -45,6 +45,9 @@ unsigned char *getOpBAddr(const unsigned char opB,data *d);
 unsigned char isOpA_acc(const unsigned char inst);
 char *operand2str(const unsigned char operand, const data *d);
 
+void setModifiedPoint(unsigned char opBtype, unsigned char *ptr, data *d);
+
+
 int non_interactive(io_data *d,const size_t step,const char *out_to){
     data result[2]={init(d),init(d)};
     return 0;
@@ -73,14 +76,15 @@ void interpret(data *d){
         fputs("Null Pointer Exception\n",stderr);
         return;
     }
+    d->obj_code[1]=0x0;
     unsigned char *instruction_byte=d->program_memory+(++(d->pc));
     unsigned char instruction=(*instruction_byte)&0xf0;
     unsigned char opBtype=(*instruction_byte)&0x7;
+    unsigned char obj1_copy_needed=((opBtype&0x6)>>1);
     
     switch(instruction){
         case IO:
             d->obj_code[0]=(*instruction_byte);
-            d->obj_code[1]=0x0;
             if((*instruction_byte)&0x8){
                 d->mnemonic_code=malloc(2);
                 strcpy(d->mnemonic_code,"IN");
@@ -95,7 +99,6 @@ void interpret(data *d){
             break;
         case CF:
             d->obj_code[0]=(*instruction_byte);
-            d->obj_code[1]=0x0;
             d->mnemonic_code=malloc(3);
             if((*instruction_byte)&0x8){
                 strcpy(d->mnemonic_code,"RCF");
@@ -108,7 +111,7 @@ void interpret(data *d){
         case LD:
         {
             d->obj_code[0]=(*instruction_byte);
-            d->obj_code[1]=(((opBtype&0x6)>>1))?*(instruction_byte+1):opBtype;
+            d->obj_code[1]=(obj1_copy_needed)?*(instruction_byte+1):0x0;
             unsigned char *src=getOpBAddr(opBtype,d);
             char *opBstr=operand2str(opBtype,d);
             
@@ -128,8 +131,15 @@ void interpret(data *d){
             break;
         case ST:
         {
+            if(!((opBtype&0x4)>>2)){
+                fputs("Stntax error: you can't specify a register to operandB.",stderr);
+                return;
+            }
             memcpy(d->obj_code,instruction_byte,2);
-            char *dest=getOpBAddr(opBtype,d);
+
+            unsigned char *dest=getOpBAddr(opBtype,d);
+            setModifiedPoint(opBtype,dest,d);
+            d->prev=*dest;
             char *opBStr=operand2str(opBtype,d);
             if(isOpA_acc(*instruction_byte)){
                 (*dest)=d->acc;
@@ -142,10 +152,24 @@ void interpret(data *d){
                 strcat(d->mnemonic_code,opBStr);
             }
             free(opBStr);
+            d->now=*dest;
         }
             break;
     }
 }
+void setModifiedPoint(unsigned char opBtype,unsigned char *ptr, data *d){
+    switch((opBtype&0x3)){
+        case 0: case 2:
+            d->memory_changed=PROGRAM_AREA;
+            d->modified_addr=ptr-d->program_memory;
+            break;
+        case 1:case 3:
+            d->memory_changed=DATA_AREA;
+            d->modified_addr=ptr-d->data_memory;
+            break;
+    }
+}
+
 unsigned char isOpA_acc(const unsigned char inst){return (inst&0x8>>3);}
 
 char *operand2str(const unsigned char operand,const data *d){
