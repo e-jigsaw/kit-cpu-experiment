@@ -61,9 +61,16 @@ int interactive(io_data *d, const size_t step, const char *out_to){
 }
 data init(io_data *d){
     data result;
+    result.pc=0;
     result.program_memory=d->program;
     result.data_memory=d->data_area;
-    if(d->initial_state!=NULL){
+    
+    if(d->initial_state==NULL){
+        result.acc=0;
+        result.ix=0;
+        result.out.bits=0;
+        result.flags=0;
+    }else{
         result.acc=d->initial_state[0];
         result.ix=d->initial_state[1];
         result.out.bits=d->initial_state[2];
