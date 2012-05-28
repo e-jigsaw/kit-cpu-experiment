@@ -14,7 +14,7 @@ struct buf{
 
 struct data{
     unsigned char obj_code[2];
-    unsigned char *mnemonic_code;
+    char *mnemonic_code;
     unsigned char pc,acc,ix;
     unsigned char flags;
     buf *in,out;

@@ -14,7 +14,7 @@ void read_program_data(const char *fname,io_data *data){
         fputs("Program memory allocation failed.\n",stderr);
         exit(EXIT_FAILURE);
     }
-    memset(data->program,0xff,256);
+    memset(data->program,0x1f,256);
 
     
     if(fname==NULL) return;
@@ -49,7 +49,7 @@ void read_data_area(const char *fname,io_data *data){
         fputs("Data memory allocation failed.\n",stderr);
         exit(EXIT_FAILURE);
     }
-    memset(data->data_area,0xff,256);
+    memset(data->data_area,0x1f,256);
     
     if(fname==NULL) return;
     int fd=open(fname,O_RDONLY);
