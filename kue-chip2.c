@@ -50,6 +50,11 @@ void setModifiedPoint(unsigned char opBtype, unsigned char *ptr, data *d);
 
 int non_interactive(io_data *d,const size_t step,const char *out_to){
     data result[2]={init(d),init(d)};
+    result[0].in=&result[1].out;
+    result[1].in=&result[0].out;
+    
+    free(result[0].mnemonic_code);
+    free(result[1].mnemonic_code);
     return 0;
 }
 
@@ -57,25 +62,25 @@ int interactive(io_data *d, const size_t step, const char *out_to){
     data result[2]={init(d),init(d)};
     result[0].in=&result[1].out;
     result[1].in=&result[0].out;
+    
+    free(result[0].mnemonic_code);
+    free(result[1].mnemonic_code);
     return 0;
 }
 data init(io_data *d){
+    if(d==NULL||d->program==NULL||d->data_area==NULL||d->initial_state==NULL){
+        fputs("io_data must not be null.\n",stderr);
+        exit(EXIT_FAILURE);
+    }
     data result;
     result.pc=0;
     result.program_memory=d->program;
     result.data_memory=d->data_area;
-    
-    if(d->initial_state==NULL){
-        result.acc=0;
-        result.ix=0;
-        result.out.bits=0;
-        result.flags=0;
-    }else{
-        result.acc=d->initial_state[0];
-        result.ix=d->initial_state[1];
-        result.out.bits=d->initial_state[2];
-        result.flags=d->initial_state[3];
-    }
+    result.acc=d->initial_state[0];
+    result.ix=d->initial_state[1];
+    result.out.bits=d->initial_state[2];
+    result.flags=d->initial_state[3];
+    result.mnemonic_code=NULL;
     return result;
 }
 void interpret(data *d){
@@ -87,11 +92,19 @@ void interpret(data *d){
     unsigned char *instruction_byte=d->program_memory+(++(d->pc));
     unsigned char instruction=(*instruction_byte)&0xf0;
     unsigned char opBtype=(*instruction_byte)&0x7;
-    unsigned char obj1_copy_needed=((opBtype&0x6)>>1);
+    unsigned char *opA;
+    unsigned char *opB=getOpBAddr(opBtype,d);
+    char *opAstr;
+    char *opBstr=operand2str(opBtype,d);
+    
+    if(isOpA_acc(*instruction_byte)){opA=&(d->acc);opAstr="ACC";}
+    else{opA=&(d->ix);opAstr="IX";}
+    
+    d->obj_code[0]=*instruction_byte;
+    d->obj_code[1]=((opBtype&0x6)>>1)?*(instruction_byte+1):0x0;
     
     switch(instruction){
         case IO:
-            d->obj_code[0]=(*instruction_byte);
             if((*instruction_byte)&0x8){
                 d->mnemonic_code=malloc(2);
                 strcpy(d->mnemonic_code,"IN");
@@ -111,60 +124,127 @@ void interpret(data *d){
                 strcpy(d->mnemonic_code,"RCF");
                 d->flags&=0x7;
             }else{
-                strcpy(d->mnemonic_code,"RCF");
+                strcpy(d->mnemonic_code,"SCF");
                 d->flags|=0x8;
             }
             break;
         case LD:
-        {
-            d->obj_code[0]=(*instruction_byte);
-            d->obj_code[1]=(obj1_copy_needed)?*(instruction_byte+1):0x0;
-            unsigned char *src=getOpBAddr(opBtype,d);
-            char *opBstr=operand2str(opBtype,d);
+        {   
+            d->mnemonic_code=malloc(strlen("LD ")+strlen(opAstr)+strlen(",")+strlen(opBstr));
+            strcpy(d->mnemonic_code,"LD ");
+            strcat(d->mnemonic_code,opAstr);
+            strcat(d->mnemonic_code,",");
+            strcat(d->mnemonic_code,opBstr);
             
             if(isOpA_acc(*instruction_byte)){
-                d->acc=(*src);
-                d->mnemonic_code=malloc(7+strlen(opBstr));
+                d->acc=(*opB);
                 strcpy(d->mnemonic_code,"LD ACC,");
                 strcat(d->mnemonic_code,opBstr);
             }else{
-                d->ix=(*src);
+                d->ix=(*opB);
                 d->mnemonic_code=malloc(6+strlen(opBstr));
                 strcpy(d->mnemonic_code,"LD IX,");
                 strcat(d->mnemonic_code,opBstr);
             }
-            free(opBstr);
         }
             break;
         case ST:
         {
             if(!((opBtype&0x4)>>2)){
-                fputs("Stntax error: you can't specify a register to operandB.",stderr);
+                fputs("Stntax error: you can't specify a register to operandB.\n",stderr);
                 return;
             }
             memcpy(d->obj_code,instruction_byte,2);
-
-            unsigned char *dest=getOpBAddr(opBtype,d);
-            setModifiedPoint(opBtype,dest,d);
-            d->prev=*dest;
-            char *opBStr=operand2str(opBtype,d);
-            if(isOpA_acc(*instruction_byte)){
-                (*dest)=d->acc;
-                d->mnemonic_code=malloc(7+strlen(opBStr));
-                strcpy(d->mnemonic_code,"ST ACC,");
-                strcat(d->mnemonic_code,opBStr);
-            }else{
-                (*dest)=d->ix;
-                strcpy(d->mnemonic_code,"ST IX,");
-                strcat(d->mnemonic_code,opBStr);
+            
+            d->mnemonic_code=malloc(strlen("ST ")+strlen(opAstr)+strlen(",")+strlen(opBstr));
+            strcpy(d->mnemonic_code,"ST ");
+            strcat(d->mnemonic_code,opAstr);
+            strcat(d->mnemonic_code,",");
+            strcat(d->mnemonic_code,opBstr);
+            
+            setModifiedPoint(opBtype,opB,d);
+            d->prev=*opB;
+            (*opB)=isOpA_acc(*instruction_byte)?d->acc:d->ix;
+            d->now=*opB;
+        }
+            break;
+        case ADD:case SUB:case CMP:case ADC:case SBC:
+        {
+            unsigned short result=0;
+            switch(instruction){
+                case ADD:case SUB:case CMP:
+                    switch(instruction){
+                        case ADD:
+                            d->mnemonic_code=malloc(strlen("ADD ")+strlen(opAstr)+strlen(",")+strlen(opBstr));
+                            strcpy(d->mnemonic_code,"ADD ");
+                            strcat(d->mnemonic_code,opAstr);
+                            strcat(d->mnemonic_code,",");
+                            strcat(d->mnemonic_code,opBstr);
+                            result=*opA+*opB;
+                            *opA=(result&0x00ff);
+                            break;
+                        case SUB:
+                            d->mnemonic_code=malloc(strlen("SUB ")+strlen(opAstr)+
+                                                    strlen(",")+strlen(opBstr));
+                            strcpy(d->mnemonic_code,"SUB ");
+                            strcat(d->mnemonic_code,opAstr);
+                            strcat(d->mnemonic_code,",");
+                            strcat(d->mnemonic_code,opBstr);
+                            result=*opA-*opB;
+                            *opA=(result&0x00ff);
+                            break;
+                        case CMP:
+                            d->mnemonic_code=malloc(strlen("CMP ")+
+                                                    strlen(opAstr)+strlen(",")+strlen(opBstr));
+                            strcpy(d->mnemonic_code,"CMP ");
+                            strcat(d->mnemonic_code,opAstr);
+                            strcat(d->mnemonic_code,",");
+                            strcat(d->mnemonic_code,opBstr);
+                            result=*opA-*opB;
+                            break;
+                    }
+                    d->flags&=0x0f&(((result>0x007f)<<2)|((result&0x0080)>>6)|(result==0));
+                    break;
+                case ADC:case SBC:
+                    switch(instruction){
+                        case ADC:
+                            d->mnemonic_code=malloc(strlen("ADC ")+
+                                                    strlen(opAstr)+strlen(",")+strlen(opBstr));
+                            strcpy(d->mnemonic_code,"ADC ");
+                            strcat(d->mnemonic_code,opAstr);
+                            strcat(d->mnemonic_code,",");
+                            strcat(d->mnemonic_code,opBstr);
+                            result=*opA+*opB+(d->flags&0x08>>7);
+                            *opA=(result&0x00ff);
+                            break;
+                        case SBC:
+                            d->mnemonic_code=malloc(strlen("SBC ")+
+                                                    strlen(opAstr)+strlen(",")+strlen(opBstr));
+                            strcpy(d->mnemonic_code,"SBC ");
+                            strcat(d->mnemonic_code,opAstr);
+                            strcat(d->mnemonic_code,",");
+                            strcat(d->mnemonic_code,opBstr);
+                            result=*opA-*opB-(d->flags&0x08>>7);
+                            *opA=(result&0x00ff);
+                            break;
+                    }
+                    d->flags&=0x0f&(((result&0x0100)>>5)|
+                                    ((result>0x007f)<<2)|
+                                    ((result&0x0080)>>6)|
+                                    (result==0));
+                    break;
             }
-            free(opBStr);
-            d->now=*dest;
+            break;
         }
             break;
     }
+    free(opBstr);
 }
 void setModifiedPoint(unsigned char opBtype,unsigned char *ptr, data *d){
+    if(!((opBtype&0x4)>>2)){
+        fputs("Stntax error: you can't specify a register to operandB.\n",stderr);
+        return;
+    }
     switch((opBtype&0x3)){
         case 0: case 2:
             d->memory_changed=PROGRAM_AREA;

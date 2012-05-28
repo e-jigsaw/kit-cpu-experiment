@@ -7,15 +7,15 @@
 #include <kue-chip2.h>
 
 #define free_mem \
-    if(initial_filepath!=NULL) free(initial_filepath);\
-    if(program_filepath!=NULL)free(program_filepath);\
-    if(data_filepath!=NULL) free(data_filepath);\
-    if(out_to!=NULL) free(out_to)
+    free(initial_filepath);\
+    free(program_filepath);\
+    free(data_filepath);\
+    free(out_to)
 
 #define free_data \
-    if(d.program!=NULL) free(d.program); \
-    if(d.data_area!=NULL) free(d.data_area); \
-    if(d.initial_state!=NULL) free(d.initial_state)
+    free(d.program); \
+    free(d.data_area); \
+    free(d.initial_state)
 
 void showDesc(char *apppath);
 int main(int argc,char *argv[]){
