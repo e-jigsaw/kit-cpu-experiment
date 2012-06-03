@@ -4,7 +4,7 @@
 #include <string.h>
 #include <getopt.h>
 #include <stdlib.h>
-#include <kue-chip2.h>
+#include <kue-chip2/kue-chip2.h>
 
 #define free_mem \
     free(initial_filepath);\
@@ -20,7 +20,7 @@
 void showDesc(char *apppath);
 int main(int argc,char *argv[]){
     int per_inst=0,has_err=0;
-    size_t step=0;
+    size_t step=500;
     char *initial_filepath,*program_filepath,*data_filepath,*out_to;
     initial_filepath=program_filepath=data_filepath=out_to=NULL;
     
@@ -34,19 +34,8 @@ int main(int argc,char *argv[]){
     {"help",no_argument,NULL,'h'},
     {0,0,0,0}
     };
-    
-    while(1){
-        int c=getopt_long(argc,argv,"z:d:s:o:i:ph",long_options,NULL);
-        if(c<0&&argv[1]==NULL){
-            per_inst=1;
-            break; 
-        }else if(c<0&&argv[1]!=NULL){
-            per_inst=1;
-            program_filepath=malloc(strlen(argv[1]));
-            strcpy(program_filepath,argv[1]);
-            break;
-        }
-        
+    int c;
+    while((c=getopt_long(argc,argv,"z:d:s:o:i:ph",long_options,NULL))>0){
         switch(c){
             case 'z':
                 initial_filepath=malloc(strlen(optarg));
@@ -78,6 +67,7 @@ int main(int argc,char *argv[]){
                 return EXIT_FAILURE;
         }
     }
+    if(argc==1) per_inst=1;
     
     /*Read files*/
     io_data d={NULL,NULL,NULL};

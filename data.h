@@ -1,5 +1,6 @@
 #pragma once
-enum changed_flag{NO_MODIFIED,PROGRAM_AREA,DATA_AREA};
+#include <stdio.h>
+enum state_flag{NO_MODIFIED,PROGRAM_AREA,DATA_AREA};
 
 struct io_data{
     unsigned char *program;
@@ -13,7 +14,9 @@ struct buf{
 }typedef buf;
 
 struct data{
+    unsigned short cpuid;
     unsigned char obj_code[2];
+    size_t code_size;
     char *mnemonic_code;
     unsigned char pc,acc,ix;
     unsigned char flags;

@@ -6,15 +6,17 @@
 #include <unistd.h>
 #include <errno.h>
 #include <string.h>
+#include <property.h>
 
 typedef struct stat stat_t;
 void read_program_data(const char *fname,io_data *data){
-    data->program=malloc(256);
+    if(data==NULL){fputs("data is null.\n",stderr);return;}
+    data->program=malloc(program_memory_size);
     if(data->program==NULL){
         fputs("Program memory allocation failed.\n",stderr);
         exit(EXIT_FAILURE);
     }
-    memset(data->program,0x1f,256);
+    memset(data->program,0x1f,program_memory_size);
 
     
     if(fname==NULL) return;
@@ -22,8 +24,7 @@ void read_program_data(const char *fname,io_data *data){
     if(fd<0){perror("Program:open()"); return;}
     stat_t file_status;
     fstat(fd,&file_status);
-    size_t size_to_read=(file_status.st_size<256)?file_status.st_size:256;
-    if(data==NULL) 
+    size_t size_to_read=(file_status.st_size<program_memory_size)?file_status.st_size:program_memory_size;
     read(fd,data->program,size_to_read);
     close(fd);
 }
@@ -44,19 +45,20 @@ void read_initial_state(const char *fname,io_data *data){
 }
 
 void read_data_area(const char *fname,io_data *data){
-    data->data_area=malloc(256);
+    if(data==NULL){fputs("data is null.\n",stderr);return;}
+    data->data_area=malloc(data_memory_size);
     if(data->data_area==NULL){
         fputs("Data memory allocation failed.\n",stderr);
         exit(EXIT_FAILURE);
     }
-    memset(data->data_area,0x1f,256);
+    memset(data->data_area,0x1f,data_memory_size);
     
     if(fname==NULL) return;
     int fd=open(fname,O_RDONLY);
     if(fd<0){perror("Data:open()"); return;}
     stat_t file_status;
     fstat(fd,&file_status);
-    size_t size_to_read=(file_status.st_size<256)?file_status.st_size:256;
+    size_t size_to_read=(file_status.st_size<data_memory_size)?file_status.st_size:data_memory_size;
     read(fd,data->data_area,size_to_read);
     close(fd);
 }

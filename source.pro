@@ -1,8 +1,9 @@
-TEMPLATE = app
+TEMPLATE = subdirs
+SUBDIRS =kue-chip2
 TARGET = simulator
 DEPENDPATH += .
 INCLUDEPATH += .
 
-HEADERS += data.h io.h kue-chip2.h
-SOURCES += io.c main.c kue-chip2.c
+HEADERS += data.h io.h property.h
+SOURCES += io.c main.c stdout.c property.c
 OTHER_FILES+=CMakeLists.txt

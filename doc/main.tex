@@ -40,7 +40,7 @@
         The program data is stored as it is. Note that the data is {\bf BINARY data hand-assembled}.
         
         \subsection{Data area file}
-        The data area file is stored as it is. Uninitialized data is interperted as 0x1f. The file size is smaller than 256 bytes, each extra area is set to 0xff.
+        The data area file is stored as it is. Uninitialized data is interperted as 0x1f. The file size is smaller than 256 bytes, each extra area is set to 0x1f.
         
         \subsection{Initial Sates for Registers/flags}
         The data format is the following:
@@ -75,13 +75,14 @@
         
         struct data{
             unsigned short cpuid;
-            unsigned short obj_code;
-            unsigned char *mnemonic_code;
+            unsigned char obj_code[2];
+            size_t code_size;
+            char *mnemonic_code;
             unsigned char pc,acc,ix;
-            unsigned char flags=0x0X;
-            buf in,out;
-            unsigned char program_memory[256];
-            unsigned char data_memory[256];
+            unsigned char flags;
+            buf *in,out;
+            unsigned char *program_memory;
+            unsigned char *data_memory;
             //the value is tri-state. look at changed_flag.
             int memory_changed;
             unsigned char modified_addr;
