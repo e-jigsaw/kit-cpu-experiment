@@ -135,7 +135,7 @@ int interactive(io_data *d, const size_t step, const char *out_to){
                     switch(retcode){
                         case SUCCEEDED: case HLT:
                             out_to_csv(out_to,result+cpu);
-                            //output_result(result+cpu):
+                            output_result(result+cpu);
                             (result+cpu)->memory_changed=NO_MODIFIED;
                             free((result+cpu)->mnemonic_code);
                             break;
