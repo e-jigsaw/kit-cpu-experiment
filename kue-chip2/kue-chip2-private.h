@@ -10,7 +10,7 @@ enum instruction_mask{
 };
 enum operandB{
     ACC=0,IX=1,VA1= 2,VA2=3,
-    AAP=4,AAD=5,IDXP=6,IDXD=7,PC=8
+    AAP=4,AAD=5,IDXP=6,IDXD=7,PC=8,IN=9,OUT=10
 };
 enum SRTYPE{
     SRA=0x0,SLA=0x1,SRL=0x2,SLL=0x3,

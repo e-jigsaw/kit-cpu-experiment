@@ -1,5 +1,5 @@
 #include "kue-chip2-private.h"
-unsigned char isOpA_acc(const unsigned char inst){return (inst&0x8>>3);}
+unsigned char isOpA_acc(const unsigned char inst){return ((inst&0x8)>>3)==0;}
 
 char *operand2str(const unsigned char operand,const data *d){
     char *opstr;

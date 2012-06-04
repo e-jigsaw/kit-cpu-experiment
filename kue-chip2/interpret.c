@@ -70,6 +70,7 @@ int interpret(data *d){
                 case ADD:case SUB:case CMP:case ADC:case SBC:
                 {
                     unsigned short result;
+                    unsigned char cflag=d->flags&0x08;
                     switch(instruction){
                         case ADD:
                             mnemonic_head="ADD";
@@ -83,7 +84,7 @@ int interpret(data *d){
                             break;
                         case CMP:
                             mnemonic_head="CMP";
-                            result=*opA-*opB;
+                            result=(*opA)-(*opB);
                             break;
                         case ADC:case SBC:
                         {
@@ -99,10 +100,10 @@ int interpret(data *d){
                                     *opA=(result&0x00ff);
                                     break;
                             }
-                            d->flags&=(((result&0x0100)>>5)|0x07);
+                            cflag=((result&0x0100)>>5);
                         }
                     }
-                    d->flags&=(0x08|((result>0x007f)<<2)|((result&0x0080)>>6)|(result==0));
+                    d->flags=(cflag|((result>0x007f)<<2)|((result&0x0080)>>6)|(result==0));
                 }
                     break;
                 case AND: case OR: case EOR:
@@ -123,7 +124,7 @@ int interpret(data *d){
                             break;
                     }
                     (*opA)=result;
-                    d->flags&=(0x08|((result&0x0080)>>6)|(result==0));
+                    d->flags=(d->flags|((result&0x0080)>>6)|(result==0));
                 }
                     break;
             }
@@ -142,10 +143,10 @@ int interpret(data *d){
             char *opAstr;
             const char *mnemonic_head;
             if(isOpA_acc(instruction)){opA=&(d->acc);opAstr="ACC";}
-            else{opA=&(d->acc);opAstr="ACC";}
+            else{opA=&(d->ix);opAstr="IX";}
             
             unsigned char type=(*instruction_byte)&0x07;
-            unsigned char cflag,vflag=0;
+            unsigned char cflag=0,vflag=0;
             switch(type){
                 case SRA: case SRL: case RRA: case RRL:
                 {
@@ -161,11 +162,11 @@ int interpret(data *d){
                             break;
                         case RRA:
                             mnemonic_head="RRA";
-                            (*opA)=((*opA)>>1)|((d->flags&0x8)>>3);
+                            (*opA)=((*opA)>>1)|((d->flags&0x08)>>3);
                             break;
                         case RRL:
                             mnemonic_head="RRL";
-                            (*opA)=((*opA)>>1)|(cflag>>3);
+                            (*opA)=((*opA)>>1)|(cflag<<4);
                             break;
                     }
                 }
@@ -204,6 +205,7 @@ int interpret(data *d){
                 }
                     break;
             }
+            d->flags=cflag|vflag|(((*opA)&0x80)>>6)|((*opA)==0);
             d->mnemonic_code=malloc(strlen(mnemonic_head)+strlen(" ")+strlen(opAstr));
             strcpy(d->mnemonic_code,mnemonic_head);
             strcat(d->mnemonic_code," ");
@@ -218,22 +220,22 @@ int interpret(data *d){
             const char *mnemonic_head;
             int jmp=0;
             switch(condition_type){
-                case A: mnemonic_head="BA";                                                                     jmp=1; break;
-                case VF:mnemonic_head="BVF"; if((d->flags&0x04)>>2)                                             jmp=1; break;
-                case NZ:mnemonic_head="BNZ"; if(!(d->flags&0x01))                                               jmp=1; break;
-                case Z: mnemonic_head="BZ";  if(d->flags&0x01)                                                  jmp=1; break;
-                case ZP:mnemonic_head="ZP";  if(!((d->flags&0x2)>>1))                                           jmp=1; break;
-                case N: mnemonic_head="N";   if((d->flags&0x2)>>1)                                              jmp=1; break;
-                case P: mnemonic_head="P";   if(!(d->flags&0x01)&&!((d->flags&0x02)>>1))                        jmp=1; break;
-                case ZN:mnemonic_head="ZN";  if((d->flags&0x01)||((d->flags&0x02)>>1))                          jmp=1; break;
-                case NI:mnemonic_head="NI";  if(!d->in->flag)                                                   jmp=1; break;
-                case NO:mnemonic_head="NO";  if(!d->out.flag)                                                   jmp=1; break;
-                case NC:mnemonic_head="NC";  if(!((d->flags&0x08)>>3))                                          jmp=1; break;
-                case C: mnemonic_head="C";   if((d->flags&0x08)>>3)                                             jmp=1; break;
-                case GE:mnemonic_head="GE";  if(!(((d->flags&0x04)>>2)^((d->flags&0x02)>>1)))                   jmp=1; break;
-                case LT:mnemonic_head="LT";  if(((d->flags&0x04)>>2)^((d->flags&0x02)>>1))                      jmp=1; break;
-                case GT:mnemonic_head="GT";  if(!((((d->flags&0x04)>>2)^((d->flags&0x02)>>1))|(d->flags&0x01)))   jmp=1; break;
-                case LE:mnemonic_head="LE";  if((((d->flags&0x04)>>2)^((d->flags&0x02)>>1))|(d->flags&0x01))      jmp=1; break;
+                case A: mnemonic_head="BA";                                                                         jmp=1; break;
+                case VF:mnemonic_head="BVF"; if((d->flags&0x04)>>2)                                                 jmp=1; break;
+                case NZ:mnemonic_head="BNZ"; if(!(d->flags&0x01))                                                   jmp=1; break;
+                case Z: mnemonic_head="BZ";  if(d->flags&0x01)                                                      jmp=1; break;
+                case ZP:mnemonic_head="ZP";  if(!((d->flags&0x2)>>1))                                               jmp=1; break;
+                case N: mnemonic_head="N";   if((d->flags&0x2)>>1)                                                  jmp=1; break;
+                case P: mnemonic_head="P";   if(!(d->flags&0x01)&&!((d->flags&0x02)>>1))                            jmp=1; break;
+                case ZN:mnemonic_head="ZN";  if((d->flags&0x01)||((d->flags&0x02)>>1))                              jmp=1; break;
+                case NI:mnemonic_head="NI";  if(!d->in->flag)                                                       jmp=1; break;
+                case NO:mnemonic_head="NO";  if(!d->out.flag)                                                       jmp=1; break;
+                case NC:mnemonic_head="NC";  if(!((d->flags&0x08)>>3))                                              jmp=1; break;
+                case C: mnemonic_head="C";   if((d->flags&0x08)>>3)                                                 jmp=1; break;
+                case GE:mnemonic_head="GE";  if(!(((d->flags&0x04)>>2)^((d->flags&0x02)>>1)))                       jmp=1; break;
+                case LT:mnemonic_head="LT";  if(((d->flags&0x04)>>2)^((d->flags&0x02)>>1))                          jmp=1; break;
+                case GT:mnemonic_head="GT";  if(!((((d->flags&0x04)>>2)^((d->flags&0x02)>>1))|(d->flags&0x01)))     jmp=1; break;
+                case LE:mnemonic_head="LE";  if((((d->flags&0x04)>>2)^((d->flags&0x02)>>1))|(d->flags&0x01))        jmp=1; break;
             }
             if(jmp) d->pc=d->obj_code[1];
             
