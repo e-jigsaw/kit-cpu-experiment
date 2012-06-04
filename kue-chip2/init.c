@@ -6,6 +6,7 @@ data init(io_data *d){
     }
     data result;
     result.pc=0x0;
+    result.memory_changed=NO_MODIFIED;
     result.program_memory=d->program;
     result.data_memory=d->data_area;
     result.acc=d->initial_state[0];

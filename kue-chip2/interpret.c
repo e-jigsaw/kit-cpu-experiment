@@ -149,7 +149,7 @@ int interpret(data *d){
             switch(type){
                 case SRA: case SRL: case RRA: case RRL:
                 {
-                    cflag=(*opA)&0x1<<3;
+                    cflag=((*opA)&0x1)<<3;
                     switch(type){
                         case SRA:
                             mnemonic_head="SRA";
@@ -161,7 +161,7 @@ int interpret(data *d){
                             break;
                         case RRA:
                             mnemonic_head="RRA";
-                            (*opA)=((*opA)>>1)|(d->flags&0x8>>3);
+                            (*opA)=((*opA)>>1)|((d->flags&0x8)>>3);
                             break;
                         case RRL:
                             mnemonic_head="RRL";
@@ -172,7 +172,7 @@ int interpret(data *d){
                     break;
                 case SLA: case SLL: case RLA: case RLL:
                 {
-                    cflag=(*opA)&0x80>>4;
+                    cflag=((*opA)&0x80)>>4;
                     switch(type){
                         case SLA: case RLA:
                             if(*opA<128&&*opA>0x40) vflag=4;
@@ -184,7 +184,7 @@ int interpret(data *d){
                                     break;
                                 case RLA:
                                     mnemonic_head="SLA";
-                                    (*opA)=(*opA)<<1|(d->flags&0x8>>3);
+                                    (*opA)=(*opA)<<1|((d->flags&0x8)>>3);
                                     break;
                             }
                             break;
@@ -195,7 +195,7 @@ int interpret(data *d){
                                     (*opA)<<=1;
                                     break;
                                 case RLL:
-                                    mnemonic_head="SLL";
+                                    mnemonic_head="RLL";
                                     (*opA)=(*opA)<<1|(cflag>>3);
                                     break;
                             }

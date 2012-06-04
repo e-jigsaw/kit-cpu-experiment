@@ -62,5 +62,6 @@ int read_mem_file(data *d,const char *fname){
     }
     memcpy(d->program_memory,program,program_memory_size);
     memcpy(d->data_memory,data,data_memory_size);
+    fclose(f);
     return SUCCEEDED;
 }

@@ -1,5 +1,6 @@
 #pragma once
 #include <stdio.h>
+#include <stddef.h>
 enum state_flag{NO_MODIFIED,PROGRAM_AREA,DATA_AREA};
 
 struct io_data{
@@ -25,7 +26,7 @@ struct data{
     unsigned char *data_memory;
     //the value is tri-state. look at changed_flag.
     int memory_changed;
-    unsigned char modified_addr;
+    ptrdiff_t modified_addr;
     unsigned char prev;
     unsigned char now;
 } typedef data;
