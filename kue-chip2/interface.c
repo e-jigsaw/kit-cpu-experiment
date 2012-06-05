@@ -6,7 +6,23 @@ int non_interactive(io_data *d,const size_t step,const char *out_to){
     result[1].in=&(result[0].out);
     result[0].cpuid=0;
     result[1].cpuid=1;
-    return 0;
+    int retcode=-1;
+    
+    for(size_t counter=0;retcode!=HLT&&retcode!=FAILURE&&counter<step;counter++){
+        retcode=interpret(result);
+        switch(retcode){
+            case SUCCEEDED: case HLT:
+                out_to_csv(out_to,result);
+                (result)->memory_changed=NO_MODIFIED;
+                free((result)->mnemonic_code);
+                break;
+            case FAILURE:
+                fputs("The code is not executable:failed.\n",stderr);
+                break;
+        }
+    }
+    if(retcode==SUCCEEDED||retcode==HLT) puts("Ok.");
+    return retcode;
 }
 
 int interactive(io_data *d, const size_t step, const char *out_to){
@@ -63,9 +79,11 @@ int interactive(io_data *d, const size_t step, const char *out_to){
                     continue;
                 }
                 tolower_str(reg);
-                if(strcmp(reg,"acc")==0)regid=ACC;
-                else if(strcmp(reg,"ix")==0) regid=IX;
-                else if(strcmp(reg,"pc")==0) regid=PC;
+                if(strcmp(reg,"acc")==0)        regid=ACC;
+                else if(strcmp(reg,"ix")==0)    regid=IX;
+                else if(strcmp(reg,"pc")==0)    regid=PC;
+                else if(strcmp(reg,"in")==0)    regid=IN;
+                else if(strcmp(reg,"out")==0)   regid=OUT;
                 else{
                     fprintf(stderr,"Syntax Error: Unknown register:%s\n",reg);
                     continue;
@@ -112,11 +130,12 @@ int interactive(io_data *d, const size_t step, const char *out_to){
             case 'c':
             {
                 int retcode=-1;
-                for(size_t counter=0;(retcode!=HLT||retcode!=FAILURE)&&counter<step;counter++){
+                for(size_t counter=0;retcode!=HLT&&retcode!=FAILURE&&counter<step;counter++){
                     retcode=interpret(result+cpu);
                     switch(retcode){
                         case SUCCEEDED: case HLT:
                             out_to_csv(out_to,result+cpu);
+                            output_result(result+cpu);
                             (result+cpu)->memory_changed=NO_MODIFIED;
                             free((result+cpu)->mnemonic_code);
                             break;

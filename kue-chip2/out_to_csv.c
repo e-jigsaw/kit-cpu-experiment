@@ -21,8 +21,8 @@ void out_to_csv(const char *fname,const data *d){
     out[0]='[';out[9]=']';
     in[10]=out[10]='\0';
     for(size_t index=0;index<8;index++){
-        if ((d->in->bits&(0x01<<(index)))>>index)  in[index+1] ='*';
-        if ((d->out.bits&(0x01<<(index)))>>index) out[index+1]='*';
+        if ((d->in->bits&(0x01<<(index)))>>index)  in[8-index] ='*';
+        if ((d->out.bits&(0x01<<(index)))>>index) out[8-index]='*';
     }
     fprintf(f,"%s;%s;",in,out);
     

@@ -14,5 +14,6 @@ data init(io_data *d){
     result.out.bits=d->initial_state[2];
     result.flags=d->initial_state[3];
     result.mnemonic_code=NULL;
+    result.cpuid=0;
     return result;
 }

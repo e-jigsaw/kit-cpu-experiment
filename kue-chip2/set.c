@@ -6,8 +6,10 @@ void set_mem(data *d,const unsigned short offset,const unsigned char value){
 
 void setreg(const int regid, data *d, const unsigned char value){
     switch(regid){
-        case ACC:d->acc=value;break;
-        case IX: d->ix=value; break;
-        case PC: d->pc=value; break;
+        case ACC:   d->acc=value;       break;
+        case IX:    d->ix=value;        break;
+        case PC:    d->pc=value;        break;
+        case IN:    d->in->bits=value;  break;
+        case OUT:   d->out.bits=value;  break;
     }
 }
