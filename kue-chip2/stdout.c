@@ -14,7 +14,7 @@ void output_memory_dump_line(const data *d, int a) {
 		}
 		printf("\n");
 	} else {
-		for(i=a; i<a+8; i++) {
+		for(i=a-256; i<a+8; i++) {
 			printf(" %2x", d->data_memory[i]);
 		}
 		printf("\n");
