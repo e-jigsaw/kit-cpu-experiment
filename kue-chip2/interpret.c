@@ -15,19 +15,19 @@ int interpret(data *d){
     switch(instruction){
         case IO:
             if((*instruction_byte)&0x8){
-                d->mnemonic_code=malloc(strlen("IN"));
+                d->mnemonic_code=calloc(sizeof(char),strlen("IN")+1);
                 strcpy(d->mnemonic_code,"IN");
                 d->acc=d->in->bits;
             }
             else{
-                d->mnemonic_code=malloc(strlen("OUT"));
+                d->mnemonic_code=calloc(sizeof(char),strlen("OUT")+1);
                 strcpy(d->mnemonic_code,"OUT");
                 d->out.bits=d->acc;
                 d->out.flag=1;
             }
             break;
         case CF:
-            d->mnemonic_code=malloc(3);
+            d->mnemonic_code=calloc(sizeof(char),4);
             if((*instruction_byte)&0x8){
                 strcpy(d->mnemonic_code,"SCF");
                 d->flags|=0x8;
@@ -128,8 +128,8 @@ int interpret(data *d){
                 }
                     break;
             }
-            d->mnemonic_code=malloc(strlen(mnemonic_head)+strlen(" ")+
-                                    strlen(opAstr)+strlen(",")+strlen(opBstr));
+            d->mnemonic_code=calloc(sizeof(char),strlen(mnemonic_head)+strlen(" ")+
+                                    strlen(opAstr)+strlen(",")+strlen(opBstr)+1);
             strcpy(d->mnemonic_code,mnemonic_head);
             strcat(d->mnemonic_code," ");
             strcat(d->mnemonic_code,opAstr);
@@ -206,7 +206,7 @@ int interpret(data *d){
                     break;
             }
             d->flags=cflag|vflag|(((*opA)&0x80)>>6)|((*opA)==0);
-            d->mnemonic_code=malloc(strlen(mnemonic_head)+strlen(" ")+strlen(opAstr));
+            d->mnemonic_code=calloc(sizeof(char),strlen(mnemonic_head)+strlen(" ")+strlen(opAstr)+1);
             strcpy(d->mnemonic_code,mnemonic_head);
             strcat(d->mnemonic_code," ");
             strcat(d->mnemonic_code,opAstr);
@@ -239,7 +239,7 @@ int interpret(data *d){
             }
             if(jmp) d->pc=d->obj_code[1];
             
-            d->mnemonic_code=malloc(strlen(mnemonic_head)+strlen(" ")+2);
+            d->mnemonic_code=calloc(sizeof(char),strlen(mnemonic_head)+strlen(" ")+3);
             strcpy(d->mnemonic_code,mnemonic_head);
             strcat(d->mnemonic_code," ");
             sprintf(d->mnemonic_code+strlen(mnemonic_head)+strlen(" "),"%02X",d->obj_code[1]);
@@ -268,10 +268,10 @@ int interpret(data *d){
                 }
             }
             if(d->code_size==1){
-                d->mnemonic_code=malloc(strlen(mnemonic_head));
+                d->mnemonic_code=calloc(sizeof(char),strlen(mnemonic_head)+1);
                 strcpy(d->mnemonic_code,mnemonic_head);
             }else{
-                d->mnemonic_code=malloc(strlen(mnemonic_head)+strlen(" ")+2);
+                d->mnemonic_code=calloc(sizeof(char),strlen(mnemonic_head)+strlen(" ")+3);
                 strcpy(d->mnemonic_code,mnemonic_head);
                 sprintf(d->mnemonic_code+strlen(mnemonic_head)+strlen(" "),"%02X",d->obj_code[1]);
             }

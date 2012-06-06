@@ -1,5 +1,7 @@
 #include "kue-chip2-private.h"
 #include "out_to_csv.h"
+#include "out_bin.h"
+#include "stdout.h"
 int non_interactive(io_data *d,const size_t step,const char *out_to){
     data result[2]={init(d),init(d)};
     result[0].in=&(result[1].out);
@@ -44,7 +46,7 @@ int interactive(io_data *d, const size_t step, const char *out_to){
             case 't':cpu=(cpu+1)%2;break;
             case 'r':
             {
-                __attribute__((cleanup(destroy_mem))) char *fname=malloc(strlen(line));
+                __attribute__((cleanup(destroy_mem))) char *fname=calloc(sizeof(char),strlen(line)+1);
                 
                 if(sscanf(line," %*c %s",fname)<1){
                     fputs("!!Internal Error Load\n",stderr);
@@ -55,13 +57,13 @@ int interactive(io_data *d, const size_t step, const char *out_to){
             }
                 break;
             case 'd':
-                //output_register_dump(result+cpu);
+                output_register_dump(result+cpu);
                 break;
             case 'm':
             {
                 size_t addr=0;
-                //if(sscanf(line," %*c %zx",&addr)<1) output_memory_at_all_adress(result+cpu);
-                //else output_memory_dump(result+cpu,addr);
+                if(sscanf(line," %*c %zx",&addr)<1) output_memory_at_all_adress(result+cpu);
+                else output_memory_dump(result+cpu,addr);
             }
                 break;
             case 's':
@@ -143,6 +145,21 @@ int interactive(io_data *d, const size_t step, const char *out_to){
                             fputs("The code is not executable:failed.\n",stderr);
                             break;
                     }
+                }
+            }
+                break;
+            case 'b':
+            {
+                __attribute__((cleanup(destroy_mem))) char *str=calloc(sizeof(char),strlen(line)+1);
+                if(sscanf(line,"%*c %s",str)<1)
+                    fputs("File name is invalid.\n",stderr);
+                else switch(out_bin(result+cpu,str)){
+                    case SUCCEEDED:
+                        puts("done.");
+                        break;
+                    case FAILURE:
+                        puts("failed.");
+                        break;
                 }
             }
                 break;

@@ -4,13 +4,13 @@ unsigned char isOpA_acc(const unsigned char inst){return ((inst&0x8)>>3)==0;}
 char *operand2str(const unsigned char operand,const data *d){
     char *opstr;
     switch(operand){
-        case ACC:                   opstr=malloc(3);    strcpy(opstr,"ACC");                        break;
-        case IX:                    opstr=malloc(2);    strcpy(opstr,"IX");                         break;
-        case VA1: case VA2:         opstr=malloc(3);    sprintf(opstr,"%02Xd",d->obj_code[1]);       break;
-        case AAP:                   opstr=malloc(5);    sprintf(opstr,"[%02Xd]",d->obj_code[1]);     break;
-        case AAD:                   opstr=malloc(5);    sprintf(opstr,"(%02Xd)",d->obj_code[1]);     break;
-        case IDXP:                  opstr=malloc(8);    sprintf(opstr,"[IX+%02Xd]",d->obj_code[1]);  break;
-        case IDXD:                  opstr=malloc(8);    sprintf(opstr,"(IX+%02Xd)",d->obj_code[1]);  break;
+        case ACC:                   opstr=calloc(sizeof(char),4);    strcpy(opstr,"ACC");                        break;
+        case IX:                    opstr=calloc(sizeof(char),3);    strcpy(opstr,"IX");                         break;
+        case VA1: case VA2:         opstr=calloc(sizeof(char),4);    sprintf(opstr,"%02Xd",d->obj_code[1]);       break;
+        case AAP:                   opstr=calloc(sizeof(char),6);    sprintf(opstr,"[%02Xd]",d->obj_code[1]);     break;
+        case AAD:                   opstr=calloc(sizeof(char),6);    sprintf(opstr,"(%02Xd)",d->obj_code[1]);     break;
+        case IDXP:                  opstr=calloc(sizeof(char),9);    sprintf(opstr,"[IX+%02Xd]",d->obj_code[1]);  break;
+        case IDXD:                  opstr=calloc(sizeof(char),9);    sprintf(opstr,"(IX+%02Xd)",d->obj_code[1]);  break;
     }
     return opstr;
 }

@@ -38,18 +38,18 @@ int main(int argc,char *argv[]){
     while((c=getopt_long(argc,argv,"z:d:s:o:i:ph",long_options,NULL))>0){
         switch(c){
             case 'z':
-                initial_filepath=malloc(strlen(optarg));
+                initial_filepath=calloc(sizeof(char),strlen(optarg)+1);
                 strcpy(initial_filepath,optarg);
                 break;
             case 'd':
-                data_filepath=malloc(strlen(optarg));
+                data_filepath=calloc(sizeof(char),strlen(optarg)+1);
                 strcpy(data_filepath,optarg);
                 break;
             case 's':
                 step=atol(optarg);
                 break;
             case 'o':
-                out_to=malloc(strlen(optarg));
+                out_to=calloc(sizeof(char),strlen(optarg)+1);
                 strcpy(out_to,optarg);
                 break;
             case 'p':
@@ -59,7 +59,7 @@ int main(int argc,char *argv[]){
                 showDesc(argv[0]);
                 return EXIT_FAILURE;
             case 'i':
-                program_filepath=malloc(strlen(optarg));
+                program_filepath=calloc(sizeof(char),strlen(optarg)+1);
                 strcpy(program_filepath,optarg);
                 break;
             default:

@@ -12,7 +12,7 @@ data init(io_data *d){
     result.acc=d->initial_state[0];
     result.ix=d->initial_state[1];
     result.out.bits=d->initial_state[2];
-    result.flags=d->initial_state[3];
+    result.flags=(d->initial_state[3]>>4);
     result.mnemonic_code=NULL;
     result.cpuid=0;
     return result;
