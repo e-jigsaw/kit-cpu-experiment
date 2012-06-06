@@ -5,16 +5,16 @@ void output_register_dump(const data *d) {
 	printf("ACC: %d IX: %d\nCF: %d VF: %d NF: %d ZF: %d\nIN: %d:%2x OUT: %d:%2x\n", d->acc, d->ix, ((d->flags&0x8)>>3), ((d->flags&0x4)>>2), ((d->flags&0x2)>>1), (d->flags&0x1), (d->in)->flag, (d->in)->bits, (d->out).flag, (d->out).bits);
 }
 
-void output_memory_dump_line(const data *d, int a) {
+void output_memory_dump_line(const data *d, int a, int f) {
 	int i;
 	printf("|%3d:", a);
-	if(a < 256) {
+	if(f) {
 		for(i=a; i<a+8; i++) {
 			printf(" %2x", d->program_memory[i]);
 		}
 		printf("\n");
 	} else {
-		for(i=a-256; i<a+8; i++) {
+		for(i=a; i<a+8; i++) {
 			printf(" %2x", d->data_memory[i]);
 		}
 		printf("\n");
@@ -22,15 +22,18 @@ void output_memory_dump_line(const data *d, int a) {
 
 }
 
-void output_memory_dump(const data *d, int a) {
-	output_memory_dump_line(d, a&0xF0);
-	output_memory_dump_line(d, (a&0xF0)+8);
+void output_memory_dump(const data *d, int a, int f) {
+	output_memory_dump_line(d, a&0xF0, f);
+	output_memory_dump_line(d, (a&0xF0)+8, f);
 }
 
 void output_memory_at_all_adress(const data *d) {
 	int i;
-	for(i=0; i<512; i+=16) {
-		output_memory_dump(d, i);
+	for(i=0; i<256; i+=16) {
+		output_memory_dump(d, i, 1);
+	}
+	for(i=0; i<256; i+=16) {
+		output_memory_dump(d, i, 0);
 	}
 }
 
