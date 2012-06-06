@@ -7,7 +7,7 @@ void output_register_dump(const data *d) {
 
 void output_memory_dump_line(const data *d, int a) {
 	int i;
-	printf("|%3d: ", a);
+	printf("|%3d:", a);
 	if(a < 256) {
 		for(i=a; i<a+8; i++) {
 			printf(" %2x", d->program_memory[i]);
@@ -22,15 +22,15 @@ void output_memory_dump_line(const data *d, int a) {
 
 }
 
-void output_memory_dump(const data *d, unsigned char a) {
-	output_memory_dump_line(d, (int)a&0xF0);
-	output_memory_dump_line(d, ((int)a&0xF0)+8);
+void output_memory_dump(const data *d, int a) {
+	output_memory_dump_line(d, a&0xF0);
+	output_memory_dump_line(d, (a&0xF0)+8);
 }
 
 void output_memory_at_all_adress(const data *d) {
 	int i;
 	for(i=0; i<512; i+=16) {
-		output_memory_dump(d, (char)i);
+		output_memory_dump(d, i);
 	}
 }
 
