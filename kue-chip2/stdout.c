@@ -10,12 +10,12 @@ void output_memory_dump_line(const data *d, int a) {
 	printf("|%3d:", a);
 	if(a < 256) {
 		for(i=a; i<a+8; i++) {
-			printf(" %2x", d->program_memory[i]);
+			printf(" %.2x", d->program_memory[i]);
 		}
 		printf("\n");
 	} else {
 		for(i=a; i<a+8; i++) {
-			printf(" %2x", d->data_memory[i]);
+			printf(" %.2x", d->data_memory[i]);
 		}
 		printf("\n");
 	}
@@ -23,8 +23,8 @@ void output_memory_dump_line(const data *d, int a) {
 }
 
 void output_memory_dump(const data *d, int a) {
-	output_memory_dump_line(d, a&0x200);
-	output_memory_dump_line(d, (a&0x200)+8);
+	output_memory_dump_line(d, a&0xFF0);
+	output_memory_dump_line(d, (a&0xFF0)+8);
 }
 
 void output_memory_at_all_adress(const data *d) {
