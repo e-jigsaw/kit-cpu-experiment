@@ -113,12 +113,14 @@ int interactive(io_data *d, const size_t step, const char *out_to){
                 switch(interpret(result+cpu)){
                     case SUCCEEDED:
                         puts("The code is executed successfully.");
+                        output_result(result+cpu);
                         out_to_csv(out_to,result+cpu);
                         (result+cpu)->memory_changed=NO_MODIFIED;
                         free((result+cpu)->mnemonic_code);
                         break;
                     case HLT:
                         puts("The code is executed successfully.(Reached Exit code.)");
+                        output_result(result+cpu);
                         out_to_csv(out_to,result+cpu);
                         (result+cpu)->memory_changed=NO_MODIFIED;
                         free((result+cpu)->mnemonic_code);
