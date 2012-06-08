@@ -1,8 +1,18 @@
 #include "stdout.h"
 #include <stdio.h>
 
+int calc1(unsigned char a) {
+	if((a&0x128)>>7) return (-1) * (int)a;
+	else return (int)a;
+}
+
 void output_register_dump(const data *d) {
-	printf("ACC: %.2x IX: %.2x\nCF: %.2x VF: %.2x NF: %.2x ZF: %.2x\nIN: %d:%.2x OUT: %d:%.2x\n", d->acc, d->ix, ((d->flags&0x8)>>3), ((d->flags&0x4)>>2), ((d->flags&0x2)>>1), (d->flags&0x1), (d->in)->flag, (d->in)->bits, (d->out).flag, (d->out).bits);
+	printf("ACC: %.2x (%d, %d) IX: %.2x (%d, %d)\nCF: %.2x VF: %.2x NF: %.2x ZF: %.2x\nIN: %d:%.2x (%d, %d) OUT: %d:%.2x (%d, %d)\n", 
+	d->acc, calc1(d->acc), d->acc, 
+	d->ix, calc1(d->ix), d->ix, 
+	((d->flags&0x8)>>3), ((d->flags&0x4)>>2), ((d->flags&0x2)>>1), (d->flags&0x1), 
+	(d->in)->flag, (d->in)->bits, calc1((d->in)->bits), (d->in)->bits,
+	(d->out).flag, (d->out).bits, calc1((d->out).bits), (d->out).bits);
 }
 
 void output_memory_dump_line(const data *d, int a) {
@@ -39,7 +49,7 @@ void output_result(const data *d) {
 	if(d->code_size == 2) {
 		printf("%.2x ", d->obj_code[1]);
 	}
-	printf("%s [CPU: %.2x PC: %.2x ACC: %.2x IX: %.2x CF: %.2x VF: %.2x NF: %.2x ZF: %.2x IN: %d:%.2x OUT: %d:%.2x ", d->mnemonic_code, d->cpuid, d->pc, d->acc, d->ix, ((d->flags&0x8)>>3), ((d->flags&0x4)>>2), ((d->flags&0x2)>>1), (d->flags&0x1), (d->in)->flag, (d->in)->bits, (d->out).flag, (d->out).bits);
+	printf("%s [CPU: %.2x PC: %.2x ACC: %.2x (%d, %d) IX: %.2x (%d, %d)\nCF: %.2x VF: %.2x NF: %.2x ZF: %.2x\nIN: %d:%.2x (%d, %d) OUT: %d:%.2x (%d, %d)]\n ", d->mnemonic_code, d->cpuid, d->pc, d->acc, calc1(d->acc), d->acc, d->ix, calc1(d->ix), d->ix, ((d->flags&0x8)>>3), ((d->flags&0x4)>>2), ((d->flags&0x2)>>1), (d->flags&0x1), (d->in)->flag, (d->in)->bits, calc1((d->in)->bits), (d->in)->bits, (d->out).flag, (d->out).bits, calc1((d->out).bits), (d->out).bits);
 	if(d->memory_changed == 0) {
 		printf("]\n");
 	} else if(d->memory_changed == 1) {
