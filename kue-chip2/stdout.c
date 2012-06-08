@@ -2,7 +2,7 @@
 #include <stdio.h>
 
 int calc1(unsigned char a) {
-	if((a&0x128)>>7) return (-1) * (int)a;
+	if((a&0x128) == 0x128) return (-1) * (int)(a&0x127);
 	else return (int)a;
 }
 
